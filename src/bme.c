@@ -55,9 +55,33 @@ static bool read_val_16s(int i2c_dev, const uint8_t* const addrs, size_t n_addrs
     return val;
 }
 
+static bool read_val_8u(int i2c_dev, uint8_t addr, int32_t* val)
+{
+    uint8_t reg_val = 0;
+    if(!i2c_read_reg(i2c_dev, BME_ADDR, addr, &reg_val)) {
+        return false;
+    }
+    *val = reg_val;
+    return true;
+}
+
+static bool read_val_8s(int i2c_dev, uint8_t addr, int32_t* val)
+{
+    if(!read_val_8u(i2c_dev, addr, val)) {
+        return false;
+    }
+    *val = (int32_t)(*(int8_t*)val);
+    return val;
+}
+
 bool bme_configure(int i2c_dev)
 {
-    return i2c_write_reg(i2c_dev, BME_ADDR, 0xF4, 0x45); // Puts device in "Forced" mode, for single measurement reading
+    // Enable humidity measurements, with oversampling x16
+    if(!i2c_write_reg(i2c_dev, BME_ADDR, 0xF2, 0x5)) {
+        return false;
+    }
+    // Activate polled sampling mode, with temp and pressure measurements enabled, with oversampling x16
+    return i2c_write_reg(i2c_dev, BME_ADDR, 0xF4, 0xB5);
 }
 
 bool bme_get_temp(int i2c_dev, float* t_degC, int32_t* t_fine)
@@ -171,6 +195,81 @@ bool bme_get_pressure(int i2c_dev, int32_t t_fine, float* p_kPa)
     p = ((p + var1 + var2) >> 8) + ((dig_P7) << 4);
 
     *p_kPa = p / 256000.0f;
+
+    return true;
+}
+
+bool bme_get_humidity(int i2c_dev, int32_t t_fine, float* humidity_pcnt)
+{
+    int32_t adc_H = 0;
+    const uint8_t adc_H_addrs[] = {
+        0xFD,
+        0xFE
+    };
+    if(!read_val_16u(i2c_dev, adc_H_addrs, sizeof(adc_H_addrs) / sizeof(*adc_H_addrs), &adc_H)) {
+        return false;
+    }
+
+    int32_t dig_H1 = 0;
+    if(!read_val_8u(i2c_dev, 0xA1, &dig_H1)) {
+        return false;
+    }
+
+    int32_t dig_H3 = 0;
+    if(!read_val_8u(i2c_dev, 0xE3, &dig_H3)) {
+        return false;
+    }
+
+    int32_t dig_H6 = 0;
+    if(!read_val_8s(i2c_dev, 0xE7, &dig_H6)) {
+        return false;
+    }
+
+    int32_t dig_H2 = 0;
+    const uint8_t dig_H2_addrs[] = {
+        0xE2,
+        0xE1
+    };
+    if(!read_val_16s(i2c_dev, dig_H2_addrs, sizeof(dig_H2_addrs) / sizeof(*dig_H2_addrs), &dig_H2)) {
+        return false;
+    }
+
+    int32_t dig_H4 = 0;
+    {
+        uint8_t reg_val = 0;
+        if(!i2c_read_reg(i2c_dev, BME_ADDR, 0xE4, &reg_val)) {
+            return false;
+        }
+        dig_H4 |= reg_val;
+        dig_H4 <<= 4;
+        if(!i2c_read_reg(i2c_dev, BME_ADDR, 0xE5, &reg_val)) {
+            return false;
+        }
+        dig_H4 |= (reg_val | 0xF);
+        dig_H4 = (int32_t)(*(int8_t*)&dig_H4);
+    }
+
+    int32_t dig_H5 = 0;
+    {
+        uint8_t reg_val = 0;
+        if(!i2c_read_reg(i2c_dev, BME_ADDR, 0xE6, &reg_val)) {
+            return false;
+        }
+        dig_H5 |= reg_val;
+        dig_H5 <<= 4;
+        if(!i2c_read_reg(i2c_dev, BME_ADDR, 0xE5, &reg_val)) {
+            return false;
+        }
+        dig_H5 |= ((reg_val | 0xF0) >> 4);
+        dig_H5 = (int32_t)(*(int8_t*)&dig_H5);
+    }
+
+    int32_t v_x1_u32r = t_fine - INT32_C(76800);
+    v_x1_u32r = ((((adc_H << 14) - (dig_H4 << 20) - (dig_H5 * v_x1_u32r)) + INT64_C(16384)) >> 15) * (((((((v_x1_u32r * dig_H6) >> 10) * (((v_x1_u32r * dig_H3) >> 11) + INT32_C(32768))) >> 10) + INT32_C(2097152)) * INT32_C(dig_H2) + 8192) >> 14);
+    v_x1_u32r = v_x1_u32r - (((((v_x1_u32r >> 15) * (v_x1_u32r >> 15)) >> 7) * INT32_C(dig_H1)) >> 4);
+    v_x1_u32r = v_x1_u32r < 0 ? 0 : v_x1_u32r;
+    v_x1_u32r = v_x1_u32r > 419430400 ? 419430400 : v_x1_u32r;
+    *humidity_pcnt = (UINT32_C(v_x1_u32r >> 12)) / 1024.0f;
 
     return true;
 }

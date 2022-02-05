@@ -31,34 +31,11 @@ int main()
     }
     printf("p_kPa = %.2f kPa\n", p_kPa);
 
-    // {
-    //     int32_t adc_P = 0x64f;
-
-    //     int64_t dig_P1 = 0x9051;
-    //     int64_t dig_P2 = INT16_C(0xd6b0);
-    //     int64_t dig_P3 = INT16_C(0x0bd0);
-    //     int64_t dig_P4 = INT16_C(0x212a);
-    //     int64_t dig_P5 = INT16_C(0xffcf);
-    //     int64_t dig_P6 = INT16_C(0xfff9);
-    //     int64_t dig_P7 = INT16_C(0x26ac);
-    //     int64_t dig_P8 = INT16_C(0xd80a);
-    //     int64_t dig_P9 = INT16_C(0x10bd);
-
-    //     int64_t var1, var2, p;
-    //     var1 = (t_fine) - 128000;
-    //     var2 = var1 * var1 * dig_P6;
-    //     var2 = var2 + ((var1*dig_P5)<<17);
-    //     var2 = var2 + ((dig_P4)<<35);
-    //     var1 = ((var1 * var1 * dig_P3)>>8) + ((var1 * dig_P2)<<12);
-    //     var1 = ((((INT64_C(1))<<47)+var1))*(dig_P1)>>33;
-    //     p = 1048576-adc_P;
-    //     p = (((p<<31)-var2)*3125)/var1;
-    //     var1 = ((dig_P9) * (p>>13) * (p>>13)) >> 25;
-    //     var2 = ((dig_P8) * p) >> 19;
-    //     p = ((p + var1 + var2) >> 8) + ((dig_P7)<<4);
-
-    //     printf("P = %.2f kPa\n", p / 256000.0f);
-    // }
+    float humidity_pcnt = 0.0f;
+    if(!bme_get_humidity(i2c_dev, t_fine, &humidity_pcnt)) {
+        return EXIT_FAILURE;
+    }
+    printf("humidity_pcnt = %.2f %%\n", humidity_pcnt);
 
     return EXIT_SUCCESS;
 }
