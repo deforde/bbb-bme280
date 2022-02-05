@@ -25,7 +25,11 @@ int main()
     }
     printf("t_degC = %.2f degrees Celsius\n", t_degC / 100.0f);
 
-    // i2cset -y 2 0x76 0xF4 0x45 // Puts device in "Forced" mode, for single measurement reading
+    float p_kPa = 0.0f;
+    if(!bme_get_pressure(i2c_dev, t_fine, &p_kPa)) {
+        return EXIT_FAILURE;
+    }
+    printf("p_kPa = %.2f kPa\n", p_kPa);
 
     // {
     //     int32_t adc_P = 0x64f;
