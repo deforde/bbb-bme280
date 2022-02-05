@@ -162,6 +162,9 @@ bool bme_get_pressure(int i2c_dev, int32_t t_fine, float* p_kPa)
     var1 = ((var1 * var1 * dig_P3) >> 8) + ((var1 * dig_P2) << 12);
     var1 = ((((INT64_C(1)) << 47) + var1)) * (dig_P1) >> 33;
     p = 1048576 - adc_P;
+    if(var1 == 0) {
+        return false;
+    }
     p = (((p << 31) - var2) * 3125) / var1;
     var1 = ((dig_P9) * (p >> 13) * (p >> 13)) >> 25;
     var2 = ((dig_P8) * p) >> 19;
