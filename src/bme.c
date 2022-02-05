@@ -6,6 +6,11 @@
 
 #define BME_ADDR 0x76
 
+bool bme_configure(int i2c_dev)
+{
+    return i2c_write_reg(i2c_dev, BME_ADDR, 0xF4, 0x45);
+}
+
 bool bme_get_temp(int i2c_dev, float* t_degC, int32_t* t_fine)
 {
     int32_t adc_T = 0;

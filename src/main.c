@@ -14,6 +14,10 @@ int main()
         return EXIT_FAILURE;
     }
 
+    if(!bme_configure(i2c_dev)) {
+        return EXIT_FAILURE;
+    }
+
     float t_degC = 0.0f;
     int32_t t_fine = 0;
     if(!bme_get_temp(i2c_dev, &t_degC, &t_fine)) {

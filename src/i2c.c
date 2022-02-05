@@ -25,12 +25,30 @@ bool i2c_read_reg(int i2c_dev, uint8_t dev_addr, uint8_t reg_addr, uint8_t* reg_
         { dev_addr, I2C_M_RD, 1, reg_val }
     };
     const size_t n_messages = sizeof(messages) / sizeof(*messages);
-    struct i2c_rdwr_ioctl_data ioctl_data = {
+    const struct i2c_rdwr_ioctl_data ioctl_data = {
         .msgs = messages,
         .nmsgs = n_messages
     };
     if(ioctl(i2c_dev, I2C_RDWR, &ioctl_data) == -1) {
         fprintf(stderr, "Failed to read register %#x from I2C device %#x: Error %i: %s\n", reg_addr, dev_addr, errno, strerror(errno));
+        return false;
+    }
+    return true;
+}
+
+bool i2c_write_reg(int i2c_dev, uint8_t dev_addr, uint8_t reg_addr, uint8_t reg_val)
+{
+    uint8_t command[] = { reg_addr, reg_val };
+    struct i2c_msg messages[] = {
+        { dev_addr, 0, sizeof(command), command }
+    };
+    const size_t n_messages = sizeof(messages) / sizeof(*messages);
+    const struct i2c_rdwr_ioctl_data ioctl_data = {
+        .msgs = messages,
+        .nmsgs = n_messages
+    };
+    if(ioctl(i2c_dev, I2C_RDWR, &ioctl_data) == -1) {
+        fprintf(stderr, "Failed to write register %#x from I2C device %#x: Error %i: %s\n", reg_addr, dev_addr, errno, strerror(errno));
         return false;
     }
     return true;
