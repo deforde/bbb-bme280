@@ -10,21 +10,17 @@
 #include "bme.h"
 #include "i2c.h"
 
-#define I2C_DEV_NAME "/dev/i2c-2"
+#define I2C_DEV_NAME         "/dev/i2c-2"
 #define DATA_STORE_FILE_PATH "data.bin"
 #define MEASUREMENT_PERIOD_S 1
 
 int
 main()
 {
-    data_vec_t data_vec = {
-        .capacity = 0,
-        .n_data_points = 0,
-        .data = NULL
-    };
+    data_vec_t data_vec = { .capacity = 0, .n_data_points = 0, .data = NULL };
     {
-        data_t* data = NULL;
-        size_t n_data_points = 0;
+        data_t *data          = NULL;
+        size_t  n_data_points = 0;
         if (read_data_from_file(DATA_STORE_FILE_PATH, &data, &n_data_points))
         {
             data_vec_init(&data_vec, data, n_data_points);
@@ -71,16 +67,14 @@ main()
         printf("humidity_pcnt = %.2f %%\n", humidity_pcnt);
 
         uint64_t timestamp_ns = 0;
-        time_t current_time = time(NULL);
+        time_t   current_time = time(NULL);
         if (current_time != (time_t)(-1))
         {
             timestamp_ns = (intmax_t)current_time;
-            data_t data = {
-                .timestamp_ns = timestamp_ns,
-                .t_degC = t_degC,
-                .p_kPa = p_kPa,
-                .humidity_pcnt = humidity_pcnt
-            };
+            data_t data  = { .timestamp_ns  = timestamp_ns,
+                            .t_degC        = t_degC,
+                            .p_kPa         = p_kPa,
+                            .humidity_pcnt = humidity_pcnt };
             write_data_to_file(DATA_STORE_FILE_PATH, data);
             data_vec_push(&data_vec, data);
         }
