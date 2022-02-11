@@ -289,7 +289,7 @@ bme_get_humidity(int i2c_dev, int32_t t_fine, float *humidity_pcnt)
             return false;
         }
         dig_H4 |= (reg_val | 0xF);
-        dig_H4 = (int32_t)(*(int8_t *)&dig_H4);
+        dig_H4 = (int32_t)(*(int16_t *)&dig_H4);
     }
 
     int32_t dig_H5 = 0;
@@ -306,7 +306,7 @@ bme_get_humidity(int i2c_dev, int32_t t_fine, float *humidity_pcnt)
             return false;
         }
         dig_H5 |= ((reg_val | 0xF0) >> 4);
-        dig_H5 = (int32_t)(*(int8_t *)&dig_H5);
+        dig_H5 = (int32_t)(*(int16_t *)&dig_H5);
     }
 
     int32_t v_x1_u32r = t_fine - INT32_C(76800);
