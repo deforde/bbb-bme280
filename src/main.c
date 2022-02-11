@@ -5,8 +5,8 @@
 #include <string.h>
 #include <time.h>
 
-#include <unistd.h>
 #include <microhttpd.h>
+#include <unistd.h>
 
 #include "bme.h"
 #include "data.h"
@@ -19,29 +19,36 @@
 
 #define PORT 8888
 
-data_vec_t data_vec = {
-    .capacity = 0,
-    .n_data_points = 0,
-    .data = NULL
-};
+data_vec_t data_vec = { .capacity = 0, .n_data_points = 0, .data = NULL };
 
-enum MHD_Result send_plot_response (void *cls __attribute__((unused)), struct MHD_Connection *connection,
-                          const char *url __attribute__((unused)),
-                          const char *method __attribute__((unused)), const char *version __attribute__((unused)),
-                          const char *upload_data __attribute__((unused)),
-                          unsigned int* upload_data_size __attribute__((unused)), void **con_cls __attribute__((unused)))
+enum MHD_Result
+send_plot_response(void *                 cls __attribute__((unused)),
+                   struct MHD_Connection *connection,
+                   const char *           url __attribute__((unused)),
+                   const char *           method __attribute__((unused)),
+                   const char *           version __attribute__((unused)),
+                   const char *           upload_data __attribute__((unused)),
+                   unsigned int *upload_data_size __attribute__((unused)),
+                   void **       con_cls __attribute__((unused)))
 {
     struct MHD_Response *response;
-    int ret;
+    int                  ret;
 
-    uint64_t* time_data_ms = (uint64_t*)malloc(data_vec.n_data_points * sizeof(uint64_t));
-    float* temp_data = (float*)malloc(data_vec.n_data_points * sizeof(float));
+    uint64_t *time_data_ms
+        = (uint64_t *)malloc(data_vec.n_data_points * sizeof(uint64_t));
+    float *temp_data = (float *)malloc(data_vec.n_data_points * sizeof(float));
     for (size_t i = 0; i < data_vec.n_data_points; ++i)
     {
         time_data_ms[i] = data_vec.data[i].timestamp_ns / 1000000;
-        temp_data[i] = data_vec.data[i].t_degC;
+        temp_data[i]    = data_vec.data[i].t_degC;
     }
-    char* page_str = plot_generate_html("Temperature", "Degrees Centigrade", "Temp", "Temp", data_vec.n_data_points, time_data_ms, temp_data);
+    char *page_str = plot_generate_html("Temperature",
+                                        "Degrees Centigrade",
+                                        "Temp",
+                                        "Temp",
+                                        data_vec.n_data_points,
+                                        time_data_ms,
+                                        temp_data);
 
     // FILE* file = fopen("tmp.html", "w");
     // fwrite(page_str, strlen(page_str), 1, file);
@@ -50,7 +57,8 @@ enum MHD_Result send_plot_response (void *cls __attribute__((unused)), struct MH
     free(time_data_ms);
     free(temp_data);
 
-    response = MHD_create_response_from_buffer(strlen(page_str), (void*)page_str, MHD_RESPMEM_PERSISTENT);
+    response = MHD_create_response_from_buffer(
+        strlen(page_str), (void *)page_str, MHD_RESPMEM_PERSISTENT);
     ret = MHD_queue_response(connection, MHD_HTTP_OK, response);
     MHD_destroy_response(response);
 
@@ -62,10 +70,6 @@ enum MHD_Result send_plot_response (void *cls __attribute__((unused)), struct MH
 int
 main()
 {
-<<<<<<< Updated upstream
-    data_vec_t data_vec = { .capacity = 0, .n_data_points = 0, .data = NULL };
-=======
->>>>>>> Stashed changes
     {
         data_t *data          = NULL;
         size_t  n_data_points = 0;
@@ -85,7 +89,14 @@ main()
         return EXIT_FAILURE;
     }
 
-    struct MHD_Daemon* daemon = MHD_start_daemon(MHD_USE_INTERNAL_POLLING_THREAD, PORT, NULL, NULL, &send_plot_response, NULL, MHD_OPTION_END);
+    struct MHD_Daemon *daemon
+        = MHD_start_daemon(MHD_USE_INTERNAL_POLLING_THREAD,
+                           PORT,
+                           NULL,
+                           NULL,
+                           &send_plot_response,
+                           NULL,
+                           MHD_OPTION_END);
     if (daemon == NULL)
         return EXIT_FAILURE;
 
@@ -102,41 +113,31 @@ main()
         {
             return EXIT_FAILURE;
         }
-        //printf("t_degC = %.2f degrees Celsius\n", t_degC);
+        // printf("t_degC = %.2f degrees Celsius\n", t_degC);
 
         float p_kPa = 0.0f;
         if (!bme_get_pressure(i2c_dev, t_fine, &p_kPa))
         {
             return EXIT_FAILURE;
         }
-        //printf("p_kPa = %.2f kPa\n", p_kPa);
+        // printf("p_kPa = %.2f kPa\n", p_kPa);
 
         float humidity_pcnt = 0.0f;
         if (!bme_get_humidity(i2c_dev, t_fine, &humidity_pcnt))
         {
             return EXIT_FAILURE;
         }
-        //printf("humidity_pcnt = %.2f %%\n", humidity_pcnt);
+        // printf("humidity_pcnt = %.2f %%\n", humidity_pcnt);
 
         uint64_t timestamp_ns = 0;
         time_t   current_time = time(NULL);
         if (current_time != (time_t)(-1))
         {
-<<<<<<< Updated upstream
-            timestamp_ns = (intmax_t)current_time;
+            timestamp_ns = (intmax_t)current_time * 1000000000;
             data_t data  = { .timestamp_ns  = timestamp_ns,
                             .t_degC        = t_degC,
                             .p_kPa         = p_kPa,
                             .humidity_pcnt = humidity_pcnt };
-=======
-            timestamp_ns = (intmax_t)current_time * 1000000000;
-            data_t data = {
-                .timestamp_ns = timestamp_ns,
-                .t_degC = t_degC,
-                .p_kPa = p_kPa,
-                .humidity_pcnt = humidity_pcnt
-            };
->>>>>>> Stashed changes
             write_data_to_file(DATA_STORE_FILE_PATH, data);
             data_vec_push(&data_vec, data);
         }
