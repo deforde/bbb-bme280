@@ -6,3 +6,4 @@ add_compile_options(-Wall -Wextra -pedantic -Werror -Werror=vla)
 add_executable(bbb-bme280 "")
 
 add_subdirectory(src)
+target_link_libraries(bbb-bme280 microhttpd)
