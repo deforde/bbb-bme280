@@ -158,7 +158,7 @@ bme_get_temp(int i2c_dev, float *t_degC, int32_t *t_fine)
         = (((((adc_T >> 4) - dig_T1) * ((adc_T >> 4) - dig_T1)) >> 12) * dig_T3)
           >> 14;
     *t_fine = var1 + var2;
-    *t_degC = (*t_fine * 5 + 128) >> 8;
+    *t_degC = ((*t_fine * 5 + 128) >> 8) / 100.0f;
 
     return true;
 }
