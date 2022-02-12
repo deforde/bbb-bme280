@@ -6,6 +6,6 @@
 
 #include "data.h"
 
-char *plot_generate_html(const data_t* data, size_t n_data_points);
+char *plot_generate_html(const data_t *data, size_t n_data_points);
 
 #endif // PLOT_H

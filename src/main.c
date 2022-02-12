@@ -34,8 +34,7 @@ send_plot_response(void *                 cls __attribute__((unused)),
     struct MHD_Response *response;
     int                  ret;
 
-    char *page_str = plot_generate_html(data_vec.data,
-                                        data_vec.n_data_points);
+    char *page_str = plot_generate_html(data_vec.data, data_vec.n_data_points);
 
     // FILE* file = fopen("tmp.html", "w");
     // fwrite(page_str, strlen(page_str), 1, file);
