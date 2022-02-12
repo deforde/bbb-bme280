@@ -34,28 +34,12 @@ send_plot_response(void *                 cls __attribute__((unused)),
     struct MHD_Response *response;
     int                  ret;
 
-    uint64_t *time_data_ms
-        = (uint64_t *)malloc(data_vec.n_data_points * sizeof(uint64_t));
-    float *temp_data = (float *)malloc(data_vec.n_data_points * sizeof(float));
-    for (size_t i = 0; i < data_vec.n_data_points; ++i)
-    {
-        time_data_ms[i] = data_vec.data[i].timestamp_ns / 1000000;
-        temp_data[i]    = data_vec.data[i].t_degC;
-    }
-    char *page_str = plot_generate_html("Temperature",
-                                        "Degrees Centigrade",
-                                        "Temp",
-                                        "Temp",
-                                        data_vec.n_data_points,
-                                        time_data_ms,
-                                        temp_data);
+    char *page_str = plot_generate_html(data_vec.data,
+                                        data_vec.n_data_points);
 
     // FILE* file = fopen("tmp.html", "w");
     // fwrite(page_str, strlen(page_str), 1, file);
     // fclose(file);
-
-    free(time_data_ms);
-    free(temp_data);
 
     response = MHD_create_response_from_buffer(
         strlen(page_str), (void *)page_str, MHD_RESPMEM_PERSISTENT);
