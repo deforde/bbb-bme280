@@ -59,6 +59,7 @@ libmicrohttpd:
 	./configure --prefix=$$PWD/../libmicrohttpd && \
 	make && \
 	make install && \
+	cd .. && \
 	rm -rf libmicrohttpd-latest
 
 -include $(DEPS)
