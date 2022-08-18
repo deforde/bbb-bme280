@@ -19,9 +19,9 @@
 
 #define PORT 8888
 
-data_vec_t data_vec = {.capacity = 0, .n_data_points = 0, .data = NULL};
+static data_vec_t data_vec = {.capacity = 0, .n_data_points = 0, .data = NULL};
 
-enum MHD_Result send_plot_response(void *cls __attribute__((unused)),
+static enum MHD_Result send_plot_response(void *cls __attribute__((unused)),
                                    struct MHD_Connection *connection,
                                    const char *url __attribute__((unused)),
                                    const char *method __attribute__((unused)),
@@ -112,5 +112,6 @@ int main() {
   }
 
   MHD_stop_daemon(daemon);
+  data_vec_destroy(&data_vec);
   return EXIT_SUCCESS;
 }
