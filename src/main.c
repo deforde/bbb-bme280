@@ -6,6 +6,7 @@
 #include <time.h>
 
 #include <microhttpd.h>
+#include <pthread.h>
 #include <unistd.h>
 
 #include "bme.h"
@@ -19,6 +20,7 @@
 
 #define PORT 8888
 
+static pthread_mutex_t data_mx;
 static data_vec_t data_vec = {.capacity = 0, .n_data_points = 0, .data = NULL};
 
 static enum MHD_Result send_plot_response(void *cls __attribute__((unused)),
@@ -34,7 +36,9 @@ static enum MHD_Result send_plot_response(void *cls __attribute__((unused)),
   struct MHD_Response *response;
   int ret;
 
+  pthread_mutex_lock(&data_mx);
   char *page_str = plot_generate_html(data_vec.data, data_vec.n_data_points);
+  pthread_mutex_unlock(&data_mx);
 
   // FILE* file = fopen("tmp.html", "w");
   // fwrite(page_str, strlen(page_str), 1, file);
@@ -51,6 +55,8 @@ static enum MHD_Result send_plot_response(void *cls __attribute__((unused)),
 }
 
 int main() {
+  pthread_mutex_init(&data_mx, NULL);
+
   {
     data_t *data = NULL;
     size_t n_data_points = 0;
@@ -72,6 +78,7 @@ int main() {
   if (daemon == NULL)
     return EXIT_FAILURE;
 
+  // TODO: Handle SIGINT to terminate cleanly
   for (;;) {
     if (!bme_configure(i2c_dev)) {
       return EXIT_FAILURE;
@@ -105,13 +112,17 @@ int main() {
                      .p_kPa = p_kPa,
                      .humidity_pcnt = humidity_pcnt};
       write_data_to_file(DATA_STORE_FILE_PATH, data);
+      pthread_mutex_lock(&data_mx);
       data_vec_push(&data_vec, data);
+      pthread_mutex_unlock(&data_mx);
     }
 
     sleep(MEASUREMENT_PERIOD_S);
   }
 
   MHD_stop_daemon(daemon);
+  pthread_mutex_destroy(&data_mx);
   data_vec_destroy(&data_vec);
+
   return EXIT_SUCCESS;
 }
