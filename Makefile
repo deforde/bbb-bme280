@@ -11,7 +11,7 @@ INC_DIRS := $(shell find $(SRC_DIRS) -type d) -Ilibmicrohttpd/include
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 
 CFLAGS := -Wall -Wextra -Wpedantic -Werror -Wno-format -Wno-strict-aliasing -Wno-incompatible-pointer-types $(INC_FLAGS) -MMD -MP
-LDFLAGS := libmicrohttpd/lib/libmicrohttpd.a
+LDFLAGS := libmicrohttpd/lib/libmicrohttpd.a -lpthread
 
 EXECUTABLE := $(BUILD_DIR)/$(TARGET_EXEC)
 
