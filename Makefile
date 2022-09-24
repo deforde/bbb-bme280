@@ -47,19 +47,19 @@ valgrind: debug
 	@valgrind ./$(EXECUTABLE)
 
 libmicrohttpd:
-	rm -rf libmicrohttpd-latest
-	mkdir libmicrohttpd-latest
-	cd libmicrohttpd-latest
-	curl -LO https://mirrors.ocf.berkeley.edu/gnu/libmicrohttpd/libmicrohttpd-latest.tar.gz
-	tar --strip-components=1 -xz -f libmicrohttpd-latest.tar.gz
-	rm libmicrohttpd-latest.tar.gz
-	cd ..
-	mkdir libmicrohttpd
-	cd libmicrohttpd-latest
-	./configure --prefix=$$PWD/../libmicrohttpd
-	make
-	make install
-	cd ..
+	rm -rf libmicrohttpd-latest && \
+	mkdir libmicrohttpd-latest && \
+	cd libmicrohttpd-latest && \
+	curl -LO https://mirrors.ocf.berkeley.edu/gnu/libmicrohttpd/libmicrohttpd-latest.tar.gz && \
+	tar --strip-components=1 -xz -f libmicrohttpd-latest.tar.gz && \
+	rm libmicrohttpd-latest.tar.gz && \
+	cd .. && \
+	mkdir libmicrohttpd && \
+	cd libmicrohttpd-latest && \
+	./configure --prefix=$$PWD/../libmicrohttpd && \
+	make && \
+	make install && \
+	cd .. && \
 	rm -rf libmicrohttpd-latest
 
 -include $(DEPS)
